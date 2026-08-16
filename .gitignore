@@ -1,6 +1,8 @@
 .DS_Store
 .omx/state/*.local.json
 *.log
-dsh-mobile/
-dsh-plugin/
-dsh-relay/
+release-dist/
+*.jks
+*.keystore
+android/key.properties
+.env

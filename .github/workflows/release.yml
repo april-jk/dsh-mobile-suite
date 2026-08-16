@@ -1,0 +1,118 @@
+name: Unified Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the pinned component sources
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            dsh-plugin/package-lock.json
+            dsh-relay/package-lock.json
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.10
+          channel: stable
+          cache: true
+
+      - name: Verify and package the DSH plugin
+        working-directory: dsh-plugin
+        run: |
+          npm ci
+          npm run build
+          npm test
+          npm audit --omit=dev
+          git diff --exit-code -- dist
+          npm pack
+
+      - name: Verify the Relay and build its container
+        working-directory: dsh-relay
+        run: |
+          npm ci
+          npm run build
+          npm test
+          npm audit --omit=dev
+          docker build -t dsh-relay:${GITHUB_REF_NAME} .
+
+      - name: Verify the mobile app
+        working-directory: dsh-mobile
+        run: |
+          flutter pub get
+          dart format --output=none --set-exit-if-changed lib test
+          flutter analyze
+          flutter test
+
+      - name: Require Android release signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          DSH_ANDROID_STORE_PASSWORD: ${{ secrets.DSH_ANDROID_STORE_PASSWORD }}
+          DSH_ANDROID_KEY_ALIAS: ${{ secrets.DSH_ANDROID_KEY_ALIAS }}
+          DSH_ANDROID_KEY_PASSWORD: ${{ secrets.DSH_ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$DSH_ANDROID_STORE_PASSWORD"
+          test -n "$DSH_ANDROID_KEY_ALIAS"
+          test -n "$DSH_ANDROID_KEY_PASSWORD"
+
+      - name: Decode the Android signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/dsh-mobile-release.jks"
+
+      - name: Build the signed Android APK
+        working-directory: dsh-mobile
+        env:
+          DSH_ANDROID_STORE_FILE: ${{ runner.temp }}/dsh-mobile-release.jks
+          DSH_ANDROID_STORE_PASSWORD: ${{ secrets.DSH_ANDROID_STORE_PASSWORD }}
+          DSH_ANDROID_KEY_ALIAS: ${{ secrets.DSH_ANDROID_KEY_ALIAS }}
+          DSH_ANDROID_KEY_PASSWORD: ${{ secrets.DSH_ANDROID_KEY_PASSWORD }}
+        run: |
+          flutter build apk --release \
+            --build-name="${GITHUB_REF_NAME#v}" \
+            --build-number="$GITHUB_RUN_NUMBER"
+          APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -x "$APK_SIGNER"
+          "$APK_SIGNER" verify --verbose --print-certs build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Assemble release assets
+        run: |
+          mkdir release-dist
+          mv dsh-plugin/*.tgz release-dist/dsh-mobile-plugin.tgz
+          cp dsh-mobile/build/app/outputs/flutter-apk/app-release.apk release-dist/dsh-mobile-android.apk
+          git -C dsh-relay archive --format=tar --prefix=dsh-relay/ HEAD \
+            | gzip -9 > "release-dist/dsh-relay-${GITHUB_REF_NAME}.tar.gz"
+          cd release-dist
+          sha256sum dsh-mobile-android.apk dsh-mobile-plugin.tgz dsh-relay-*.tar.gz > SHA256SUMS
+
+      - name: Publish the immutable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" release-dist/* \
+            --title "DSH Mobile Suite ${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag

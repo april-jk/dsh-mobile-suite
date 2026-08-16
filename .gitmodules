@@ -1,0 +1,9 @@
+[submodule "dsh-mobile"]
+	path = dsh-mobile
+	url = https://github.com/april-jk/dsh-mobile.git
+[submodule "dsh-plugin"]
+	path = dsh-plugin
+	url = https://github.com/april-jk/dsh-mobile-plugin.git
+[submodule "dsh-relay"]
+	path = dsh-relay
+	url = https://github.com/april-jk/dsh-relay.git
