@@ -1,106 +1,108 @@
 # DSH Mobile Suite
 
-用 Android 手机远程打开电脑上的 DeepSeek Harness Web UI，并通过原有界面创建和下达新任务。
+[English](README.md) | [简体中文](README.zh-CN.md)
 
-> **非官方社区项目：** 本项目由社区独立开发和维护，未经 DeepSeek 审核、推荐或背书。当前版本是 MVP，尚未实现端到端加密。
+Open the DeepSeek Harness Web UI on your computer from an Android phone, then create tasks and submit instructions through the familiar DSH interface.
 
-DeepSeek Harness 社区展示帖：[Show Your Plugins! #2520](https://github.com/deepseek-ai/deepseek-harness/discussions/2520)（社区发现入口，不代表官方审核或背书）。
+> **Unofficial community project:** this project is independently developed and maintained by the community. It is not reviewed, endorsed, or supported by DeepSeek. The current release is an MVP and does not yet provide end-to-end encryption.
+
+DeepSeek Harness community post: [Show Your Plugins! #2520](https://github.com/deepseek-ai/deepseek-harness/discussions/2520). This is a community discovery entry, not an official review or endorsement.
 
 <table>
   <tr>
-    <td><img src="docs/images/mobile-login.png" alt="DSH Mobile 登录与 Relay 选择" width="320"></td>
-    <td><img src="docs/images/mobile-devices.png" alt="DSH Mobile 电脑列表" width="320"></td>
+    <td><img src="docs/images/mobile-login.png" alt="DSH Mobile login and Relay selection" width="320"></td>
+    <td><img src="docs/images/mobile-devices.png" alt="Paired DSH computers" width="320"></td>
   </tr>
 </table>
 
-## 组成
+## Components
 
-本仓库以 Git submodule 锁定三个可独立开发和发布的开源组件：
+This repository pins three independently developed and released open-source components as Git submodules:
 
-| 目录 | 作用 | 独立仓库 |
+| Directory | Purpose | Repository |
 | --- | --- | --- |
-| `dsh-mobile/` | Flutter Android/iOS 客户端 | [april-jk/dsh-mobile](https://github.com/april-jk/dsh-mobile) |
-| `dsh-plugin/` | 安装到 DSH 的电脑端插件与 Companion | [april-jk/dsh-mobile-plugin](https://github.com/april-jk/dsh-mobile-plugin) |
-| `dsh-relay/` | 账号、配对、短期票据和流量中转服务 | [april-jk/dsh-relay](https://github.com/april-jk/dsh-relay) |
+| `dsh-mobile/` | Flutter client for Android and iOS | [april-jk/dsh-mobile](https://github.com/april-jk/dsh-mobile) |
+| `dsh-plugin/` | DSH plugin and Companion running on the computer | [april-jk/dsh-mobile-plugin](https://github.com/april-jk/dsh-mobile-plugin) |
+| `dsh-relay/` | Accounts, pairing, short-lived tickets, and traffic relay | [april-jk/dsh-relay](https://github.com/april-jk/dsh-relay) |
 
-手机不会直接连接电脑。电脑端插件只建立到 Relay 的出站 WSS 连接，DSH 继续监听 `127.0.0.1:3080`。
+The phone never connects directly to the computer. The plugin opens only an outbound WSS connection to the Relay, while DSH remains bound to `127.0.0.1:3080`.
 
-默认公共 Relay：`https://relay.dshmobile.online`
+Default public Relay: `https://relay.dshmobile.online`
 
-## 直接使用
+## Install and use
 
-在 [最新 Release](https://github.com/april-jk/dsh-mobile-suite/releases/latest) 下载：
+Download these files from the [latest release](https://github.com/april-jk/dsh-mobile-suite/releases/latest):
 
-- `dsh-mobile-android.apk`：已签名 Android 安装包
-- `dsh-mobile-plugin.tgz`：预构建 DSH 插件包
-- `dsh-relay-v*.tar.gz`：Relay 私有部署源码包
-- `SHA256SUMS`：所有安装包的 SHA-256 校验值
+- `dsh-mobile-android.apk`: signed Android installer
+- `dsh-mobile-plugin.tgz`: prebuilt DSH plugin package
+- `dsh-relay-v*.tar.gz`: Relay source package for private deployment
+- `SHA256SUMS`: SHA-256 checksums for every release asset
 
-先校验下载文件：
+Verify the downloaded files:
 
 ```bash
 shasum -a 256 -c SHA256SUMS
 ```
 
-将插件包安装到 DSH Web profile，并启动 DSH：
+Install the plugin package into the DSH web profile, then start DSH:
 
 ```bash
 dsh plugin --profile web add ./dsh-mobile-plugin.tgz
 dsh web
 ```
 
-也可以直接安装已锁定的公开插件版本：
+You can also install the pinned public plugin tag directly:
 
 ```bash
 dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.2
 dsh web
 ```
 
-在 Android 设备上安装 `dsh-mobile-android.apk`。首次安装第三方 APK 时，系统会要求允许浏览器或文件管理器安装未知应用。应用包名为 `io.github.apriljk.dshremote`。
+Install `dsh-mobile-android.apk` on your Android device. Android may ask you to allow the browser or file manager to install unknown apps. The application ID is `io.github.apriljk.dshremote`.
 
-## 配对和远程任务
+## Pair and run remote tasks
 
-1. 在手机应用注册或登录账号。
-2. 在电脑的 DSH Web UI 打开 **Settings > Remote Access**，创建六位配对码或二维码。
-3. 在手机电脑列表点 **+**，扫码或输入六位配对码。
-4. 选择在线电脑，手机会打开正常的 DSH Web UI。
-5. 在 DSH 原有界面创建任务并提交指令。
+1. Register or log in from the mobile app.
+2. On the computer, open **Settings > Remote Access** in DSH and create a six-digit pairing code or QR code.
+3. Tap **+** in the mobile device list, then scan the QR code or enter the six-digit code.
+4. Select the online computer to open its normal DSH Web UI.
+5. Create a task and submit instructions through the existing DSH interface.
 
-插件随 `dsh web` 启停，无需另开后台进程。电脑离线、DSH 未启动或插件未连接 Relay 时，手机会显示该电脑离线。
+The plugin follows the `dsh web` lifecycle and does not need a separate background process. The phone shows the computer as offline when the computer or DSH is stopped, or when the plugin is disconnected from the Relay.
 
-## 私有部署 Relay
+## Deploy a private Relay
 
-下载并解压 Release 中的 `dsh-relay-v*.tar.gz`，然后：
+Download and extract `dsh-relay-v*.tar.gz` from the release, then run:
 
 ```bash
 cp .env.example .env
-# 编辑 .env，至少将 JWT_SECRET 换成长随机值
+# Edit .env and replace JWT_SECRET with a long random value.
 docker compose up -d --build
 curl http://127.0.0.1:8787/health
 ```
 
-公网使用时必须在 `8787` 端口前配置 HTTPS 反向代理，并为 `/data` 中的 SQLite 数据做持久化备份。MVP Relay 必须以单实例运行。
+For public access, put an HTTPS reverse proxy in front of port `8787` and back up the SQLite data under `/data`. The MVP Relay must run as a single instance.
 
-电脑和手机必须指向同一个 Relay：
+The computer and phone must use the same Relay:
 
 ```bash
 DSH_RELAY=https://relay.example.com dsh web
 ```
 
-在手机登录页点 **Relay**，或登录后打开 **设置 > Relay 服务器**，输入同一个 HTTPS 地址。切换 Relay 会退出当前账号，因为不同 Relay 的账号和 Token 完全独立。
+On the mobile login screen, tap **Relay**, or open **Settings > Relay Server** after logging in, and enter the same HTTPS origin. Changing the Relay logs out the current account because accounts and tokens are isolated between Relay instances.
 
-完整环境变量与资源限制见 [Relay README](https://github.com/april-jk/dsh-relay#readme)。
+See the [Relay README](https://github.com/april-jk/dsh-relay#readme) for all environment variables and resource limits.
 
-## 安全边界
+## Security boundaries
 
-- 公网传输必须使用 HTTPS/WSS；电脑端不会开放公网监听端口。
-- 移动端只持有账号 Token 和短期 Web Ticket，不会得到电脑设备密钥。
-- Relay 不持久化 DSH HTTP/WebSocket 请求体或响应体，但 MVP 没有应用层端到端加密，Relay 进程能够看到中转内容。
-- Relay 会保存账号、设备、配对和受限的访问日志元数据；公开商店发布前仍需完成账号删除、隐私政策和数据合规事项。
+- Public traffic must use HTTPS/WSS; the computer never opens a public listening port.
+- The mobile app receives account tokens and short-lived web tickets, never the computer's device credential.
+- The Relay does not persist DSH HTTP/WebSocket request or response bodies. The MVP has no application-level end-to-end encryption, so the Relay process can see traffic while forwarding it.
+- The Relay stores accounts, devices, pairing state, and bounded access-log metadata. Account deletion, a privacy policy, and related compliance work are still required before app-store distribution.
 
-安全问题请按 [SECURITY.md](SECURITY.md) 私下报告，不要在公开 Issue 中披露可利用细节。
+Report security issues privately as described in [SECURITY.md](SECURITY.md). Do not disclose exploitable details in a public issue.
 
-## 开发
+## Development
 
 ```bash
 git clone --recurse-submodules https://github.com/april-jk/dsh-mobile-suite.git
@@ -108,8 +110,8 @@ cd dsh-mobile-suite
 git submodule update --init --recursive
 ```
 
-组件代码在各自仓库提交。本仓库只维护跨端文档、统一 Release 工作流和经过验证的组件提交指针。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+Commit component code in its own repository. This repository maintains cross-component documentation, the unified release workflow, and tested component revisions. See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.
 
-## 许可证
+## License
 
-父仓库和三个组件均使用 [MIT License](LICENSE)。
+The suite and all three components use the [MIT License](LICENSE).
