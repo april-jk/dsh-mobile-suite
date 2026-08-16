@@ -9,6 +9,7 @@ This directory is the integration source of truth for the three independently ve
 | [Integration-Plan.md](Integration-Plan.md) | All teams | Local and Railway test sequence, ownership, and release gates |
 | [DSH-远程MVP-跨端接口.md](DSH-远程MVP-跨端接口.md) | All teams | Concise implementation-aligned contract summary |
 | [移动端-MVP-修改建议.md](移动端-MVP-修改建议.md) | Mobile | Review findings and acceptance criteria for connecting the Flutter app to the deployed MVP |
+| [WebUI-远程访问管理方案.md](WebUI-远程访问管理方案.md) | Plugin, Relay, Mobile | Move pairing into DSH WebUI and add authorized-device and access-session management |
 | [Mobile-WebView-Performance.md](Mobile-WebView-Performance.md) | Companion, Relay, Mobile | Measured tunnel bottlenecks, compression/cache requirements, and WebView performance gates |
 
 The product baseline remains in `../Kimi_Agent_DeepSeek Harness 移动端/`. Where an implementation detail was not specified there, the API and protocol documents in this directory make the MVP decision explicit. When examples differ, `API-v1.md` and `Tunnel-Protocol-v1.md` are authoritative.
