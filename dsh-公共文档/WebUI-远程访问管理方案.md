@@ -326,6 +326,42 @@ Companion 对所有 Relay 转发请求强制覆盖 `X-DSH-Mobile-Remote: 1`。�
 - 实施 30 天 / 500 条清理策略。
 - 验证 Relay 日志和 SQLite 都不包含 DSH 业务 payload。
 
+#### 阶段 C MVP 接口契约
+
+在移动端尚未提供稳定 `mobileClientId` 前，Relay 在 web ticket 首次消费时创建访问会话，并从 WebView User-Agent 中只提取以下低敏字段：
+
+- `platform`：`ios | android | other`。
+- `deviceLabel`：例如 `iPhone`、`iPad`、Android 机型或“移动设备”。
+- `osVersion`：仅保留系统版本；无法可靠识别时为 `null`。
+
+Relay 不保存原始 User-Agent、IP、请求路径、query、请求头或 DSH payload。每个 web ticket 对应一条 session；同一 session 的 `lastSeenAt` 最多每 60 秒写入一次，数据保留 30 天且每台电脑最多 500 条。
+
+Companion 使用设备凭证读取：
+
+```text
+GET /device-management/:deviceId/access-sessions?limit=50
+Authorization: Device <deviceToken>
+```
+
+返回：
+
+```json
+{
+  "sessions": [{
+    "id": "access_xxx",
+    "deviceLabel": "iPhone",
+    "platform": "ios",
+    "osVersion": "18.6",
+    "startedAt": 1786870000000,
+    "lastSeenAt": 1786870060000,
+    "expiresAt": 1786877200000,
+    "status": "active"
+  }]
+}
+```
+
+Host 同源暴露 `GET /dsh-mobile/api/access-sessions`，但不把设备凭证交给浏览器。`status` 仅为 `active | expired | ended`。后续 Mobile 提供稳定实例 ID 后，可以增量加入 `mobileClientId` 和用户命名，不改变现有字段语义。
+
 ## 验收标准
 
 1. 新 profile 安装 `dsh-mobile` 后，不看终端 QR 也能在 WebUI 完成首次配对。
