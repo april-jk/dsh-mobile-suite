@@ -13,7 +13,7 @@ Clone with submodules:
 git clone --recurse-submodules https://github.com/april-jk/dsh-mobile-suite.git
 ```
 
-For behavior that changes a cross-component contract, update the versioned document under `dsh-公共文档/` before or with the component changes. Preserve tunnel envelope `v: 1` compatibility unless a migration plan is included.
+For behavior that changes a cross-component contract, update the public contract documentation in the affected component repositories before or with the code changes. Preserve tunnel envelope `v: 1` compatibility unless a migration plan is included.
 
 Before opening a pull request, run the checks documented in the affected component README. Do not commit credentials, Android signing keys, `.env` files, generated SQLite databases, or Railway tokens.
 

@@ -20,7 +20,6 @@
 | `dsh-mobile/` | Flutter Android/iOS 客户端 | [april-jk/dsh-mobile](https://github.com/april-jk/dsh-mobile) |
 | `dsh-plugin/` | 安装到 DSH 的电脑端插件与 Companion | [april-jk/dsh-mobile-plugin](https://github.com/april-jk/dsh-mobile-plugin) |
 | `dsh-relay/` | 账号、配对、短期票据和流量中转服务 | [april-jk/dsh-relay](https://github.com/april-jk/dsh-relay) |
-| `dsh-公共文档/` | 跨端 API、隧道协议和集成约定 | 本仓库 |
 
 手机不会直接连接电脑。电脑端插件只建立到 Relay 的出站 WSS 连接，DSH 继续监听 `127.0.0.1:3080`。
 
