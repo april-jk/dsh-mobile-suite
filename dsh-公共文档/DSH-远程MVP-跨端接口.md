@@ -30,6 +30,7 @@
 - `GET /devices`：返回 `{ devices: [{ id, name, online, dshStatus, lastSeenAt }] }`
 - `PATCH /devices/:id` `{ name }`
 - `DELETE /devices/:id`
+- `POST /device-management/:id/unbind` ：Companion 使用 `Authorization: Device <deviceToken>` 在电脑本机移除整机配对，Relay 撤销设备令牌、结束访问会话并断开当前连接
 - `POST /web-ticket` `{ deviceId }`：返回一次性 60 秒 ticket
 
 WebView 第一次请求使用 `GET /s/{deviceId}/?ticket=<ticket>`。Relay 校验后设置 `HttpOnly; SameSite=Lax; Path=/` Cookie（有效 2 小时），后续请求和 WebSocket 升级均使用 Cookie。`Path=/` 用于承载 DSH 生成的 `/assets`、`/plugins`、`/api` 等绝对路径。ticket 只能使用一次。

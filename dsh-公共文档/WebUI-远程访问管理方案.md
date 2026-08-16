@@ -308,7 +308,9 @@ DELETE /dsh-mobile/api/pairing
 
 Companion 对所有 Relay 转发请求强制覆盖 `X-DSH-Mobile-Remote: 1`。带此标头的 `POST` / `DELETE` 返回 `403` 和 `reason: local_management_required`；`GET /state` 保持可读。阶段 A 页面每两秒读取状态，首次安装无 token 时不会自动创建配对会话，也不会阻塞 `dsh web`。
 
-阶段 A 尚未实现已授权手机列表、单手机撤销、访问会话日志和账号解绑。这些控件不会在页面中伪造展示，必须等待阶段 B/C 的 Relay 与 Mobile 授权模型完成。
+`DELETE /dsh-mobile/api/pairing` 按当前状态执行：配对中只取消未完成的配对会话；已配对时，Companion 先用设备凭证调用 `POST /device-management/:deviceId/unbind`，Relay 确认撤销后才清理本地凭证并回到未配对状态。如果 Relay 不可用，本地凭证保留，页面显示失败且允许重试。该操作只允许本机浏览器调用。
+
+阶段 A 尚未实现已授权手机列表和单手机撤销。这些控件不会在页面中伪造展示，必须等待阶段 B 的 Relay 与 Mobile 授权模型完成。
 
 ### 阶段 B：手机实例与撤销
 

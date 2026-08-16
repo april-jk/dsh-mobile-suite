@@ -95,6 +95,12 @@ Request: `{"name":"New name"}`. Returns `200 {"ok":true}`. The caller must own t
 
 Returns `200 {"ok":true}`. The Relay immediately revokes the device token and closes the active Companion connection. A later Companion reconnect must receive `auth_fail` and return to pairing.
 
+### `POST /device-management/:id/unbind` (Companion)
+
+Requires `Authorization: Device <deviceToken>`. Returns `200 {"ok":true}` after atomically removing the account ownership and revoking the device token. The Relay closes the active Companion connection and ends active WebView access sessions with reason `unbound`.
+
+This endpoint is used by the local DSH **Remote Access** settings page and the `dsh-mobile unpair` recovery command. An invalid or already revoked device credential returns `401 {"error":"invalid_device_token"}`. The Companion clears its local `deviceId`, `deviceSecret`, and `deviceToken` only after the Relay acknowledges the unbind, then returns to the unpaired state. Remote WebView requests must not be allowed to invoke this operation.
+
 ## WebView authorization and proxy
 
 ### `POST /web-ticket` (User)
