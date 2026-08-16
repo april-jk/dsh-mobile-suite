@@ -25,6 +25,8 @@ DeepSeek Harness 社区展示帖：[Show Your Plugins! #2520](https://github.com
 
 手机不会直接连接电脑。电脑端插件只建立到 Relay 的出站 WSS 连接，DSH 继续监听 `127.0.0.1:3080`。
 
+默认公共 Relay：`https://relay.dshmobile.online`
+
 ## 直接使用
 
 在 [最新 Release](https://github.com/april-jk/dsh-mobile-suite/releases/latest) 下载：
@@ -50,7 +52,7 @@ dsh web
 也可以直接安装已锁定的公开插件版本：
 
 ```bash
-dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.1
+dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.2
 dsh web
 ```
 
