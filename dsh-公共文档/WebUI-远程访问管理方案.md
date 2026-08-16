@@ -281,6 +281,35 @@ RemoteAccessService
 
 这一阶段不改授权模型，可先独立发布。
 
+#### 阶段 A 已实现接口（2026-08-16）
+
+插件当前已实现以下同源 Host API：
+
+```text
+GET    /dsh-mobile/api/state
+POST   /dsh-mobile/api/pairing
+DELETE /dsh-mobile/api/pairing
+```
+
+`GET /state` 返回当前电脑、Relay、DSH、配对状态，以及 `localActionsAllowed`。配对中会额外返回六位码、失效时间、v1 QR payload 和由 Host 生成的 SVG；不会返回 `deviceSecret` 或 `deviceToken`。
+
+```json
+{
+  "phase": "unpaired",
+  "deviceId": null,
+  "deviceName": "Watson's Computer",
+  "relay": "https://dsh-relay-production.up.railway.app",
+  "dsh": "online",
+  "relayConnection": "offline",
+  "pairing": null,
+  "localActionsAllowed": true
+}
+```
+
+Companion 对所有 Relay 转发请求强制覆盖 `X-DSH-Mobile-Remote: 1`。带此标头的 `POST` / `DELETE` 返回 `403` 和 `reason: local_management_required`；`GET /state` 保持可读。阶段 A 页面每两秒读取状态，首次安装无 token 时不会自动创建配对会话，也不会阻塞 `dsh web`。
+
+阶段 A 尚未实现已授权手机列表、单手机撤销、访问会话日志和账号解绑。这些控件不会在页面中伪造展示，必须等待阶段 B/C 的 Relay 与 Mobile 授权模型完成。
+
 ### 阶段 B：手机实例与撤销
 
 同时改 Relay + Mobile + Plugin：
