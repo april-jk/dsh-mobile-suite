@@ -48,7 +48,7 @@ shasum -a 256 -c SHA256SUMS
 Install the pinned plugin directly from GitHub, then start DSH. This path does not require a global DSH installation, a source checkout, or a local file path:
 
 ```bash
-npx @deepseek-ai/dsh plugin --profile web add "github:april-jk/dsh-mobile-plugin#v0.1.2"
+npx @deepseek-ai/dsh plugin --profile web add "github:april-jk/dsh-mobile-plugin#v0.1.3"
 npx @deepseek-ai/dsh web
 ```
 

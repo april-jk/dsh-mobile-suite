@@ -1,4 +1,4 @@
-# DSH 0.1.1 端到端加密最小实施方案
+# DSH 0.1.3 端到端加密最小实施方案
 
 ## 结论
 
@@ -6,7 +6,7 @@
 
 本方案保留现有 tunnel outer envelope `v: 1`，新增互不兼容的密文消息类型并强制能力协商；二维码独立升级为 `v: 2`。业务 HTTP/WS 的现有 v1 信封作为密文内层继续复用。
 
-## 当前状态
+## 实施前状态（已由 0.1.3 修复）
 
 - Mobile WebView 直接加载 Relay `/s/{deviceId}`，Relay 是浏览器明文 HTTP 的终止点：`dsh-mobile/lib/features/session/session_webview_page.dart:59`、`:298`。
 - Relay 明文读取 method/path/headers/body，明文组装 status/headers/body 和 WebSocket frame：`dsh-relay/src/server.ts:488`、`:638`、`:745`。
@@ -29,7 +29,7 @@
 
 - Mobile 或 Companion 端点自身被攻陷。
 - Relay 观察账号、deviceId、在线状态、连接时间、密文长度和时序。
-- 0.1.1 不提供前向保密：设备主密钥日后泄露时，已被记录的密文可能被追溯解密。X25519 authenticated ephemeral handshake 留给后续协议版本。
+- 0.1.3 不提供前向保密：设备主密钥日后泄露时，已被记录的密文可能被追溯解密。X25519 authenticated ephemeral handshake 留给后续协议版本。
 
 ## 设计决策
 
@@ -43,7 +43,7 @@ Companion 在开始配对时本地生成 32-byte `e2eeMasterKey`，不得上传 
 
 Mobile 扫码后把 key 暂存在内存；`POST /pair/claim` 成功返回 `deviceId` 后，按账号和 deviceId 写入 `flutter_secure_storage`。Companion 在 `/pair/confirm` 成功后写入现有 0600 配置文件。解绑、退出账号或重新配对时删除 key。
 
-六位手输码不携带高熵秘密，生产 0.1.1 不允许仅凭手输码完成 claim；只接受 QR v2 安全配对。手输入口只能在显式 legacy 开发模式保留，不实现基于六位码的自制密钥派生。
+六位手输码不携带高熵秘密，生产 0.1.3 不允许仅凭手输码完成 claim；只接受 QR v2 安全配对。手输入口只能在显式 legacy 开发模式保留，不实现基于六位码的自制密钥派生。
 
 ### 2. 会话握手与密钥派生
 
@@ -80,7 +80,7 @@ outer envelope 继续使用 `v: 1`，新增 `client_open`、`device_accept`、`s
 - AAD 为确定性 UTF-8 JSON array：`["dsh-e2ee",1,accessSessionId,direction,seq]`。
 - GCM tag 随 ciphertext 一起编码。重复、乱序、认证失败或跨会话 frame 立即关闭 secure session。
 - 解密后的 plaintext 是现有 `http_req/http_res/http_close/ws_open/ws_open_ok/ws_frame/ws_close` envelope；channel、path、headers、status 和内容均不出密文边界。
-- `auth/auth_ok/status/ping/pong` 仍可由 Relay 看见，但不得携带业务正文；`event` 在 0.1.1 禁止正文持久化，正文事件必须走 sealed data plane。
+- `auth/auth_ok/status/ping/pong` 仍可由 Relay 看见，但不得携带业务正文；`event` 在 0.1.3 禁止正文持久化，正文事件必须走 sealed data plane。
 
 ### 4. Mobile loopback 网关
 
@@ -134,7 +134,7 @@ Relay 新增 `/client-tunnel` WebSocket endpoint：
 3. 新增 `dsh-mobile/lib/features/session/e2ee_codec.dart` 和 `secure_tunnel.dart`，实现 handshake、HKDF、AES-GCM、seq、重连和 fail-closed。
 4. 新增 `dsh-mobile/lib/features/session/local_session_proxy.dart`，处理 HTTP、SSE、WebSocket、capability cookie 和资源清理。
 5. 修改 `dsh-mobile/lib/features/session/session_webview_page.dart:59`、`:298`，从 Relay URL 改为 local proxy URL；修改 `session_policy.dart:53` 的 origin policy。
-6. Mobile 需要一个经过审计的 AEAD/HKDF 实现。Dart 标准库没有该能力，建议唯一新增依赖为 `cryptography`；执行前需明确接受这一依赖，不手写密码算法。
+6. Mobile 使用经过审计的 `cryptography` 实现 AEAD/HKDF；这是本版本唯一新增依赖，不手写密码算法。
 
 ## 实施顺序
 
@@ -158,14 +158,12 @@ Relay 新增 `/client-tunnel` WebSocket endpoint：
 
 ## 版本与发布
 
-“0.1.1”只能作为当前产品安全里程碑名称，不能重写已存在的 suite `v0.1.1` 或 Companion `v0.1.2` tag。建议实际不可变发布号：
+本次产品和三个组件统一使用不可变版本 `0.1.3`：
 
-- Suite：`v0.1.2`
+- Suite：`v0.1.3`
 - Companion npm：`0.1.3`
-- Relay：`0.1.2`
-- Mobile：`0.1.2+3`
-
-若业务必须继续称“0.1.1”，发布说明可写“0.1.1 E2EE completion”，但仓库 tag/package version 仍使用上述递增版本。
+- Relay：`0.1.3`
+- Mobile：`0.1.3+3`
 
 ## 剩余风险
 

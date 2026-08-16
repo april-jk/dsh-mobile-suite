@@ -48,7 +48,7 @@ shasum -a 256 -c SHA256SUMS
 直接从 GitHub 安装固定版本的插件并启动 DSH。该方式不要求全局安装 DSH、不需要克隆源码，也不需要填写本地文件路径：
 
 ```bash
-npx @deepseek-ai/dsh plugin --profile web add "github:april-jk/dsh-mobile-plugin#v0.1.2"
+npx @deepseek-ai/dsh plugin --profile web add "github:april-jk/dsh-mobile-plugin#v0.1.3"
 npx @deepseek-ai/dsh web
 ```
 
