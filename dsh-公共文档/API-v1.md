@@ -8,6 +8,26 @@ Access tokens are bearer tokens with a seven-day lifetime. Refresh tokens are op
 
 REST API errors use `{"error":"<code>"}`. Errors returned by the WebView proxy use `{"reason":"<code>"}` because they are rendered as user-facing connection states by the mobile client.
 
+## Mobile version policy
+
+### `GET /app/version?platform=android|ios` (Public)
+
+Returns the release policy for one mobile platform:
+
+```json
+{
+  "platform": "android",
+  "latestVersion": "0.2.0",
+  "minimumVersion": "0.1.0",
+  "downloadUrl": "https://play.google.com/store/apps/details?id=com.deepseek.dshremote",
+  "releaseNotes": "Improved remote session stability."
+}
+```
+
+`latestVersion` produces a dismissible update prompt when it is newer than the installed version. `minimumVersion` produces a non-dismissible prompt when it is newer than the installed version. Versions use numeric dotted ordering such as `1.4.2`; prerelease versions sort below the corresponding stable version. `downloadUrl` and `releaseNotes` may be `null` when no update is published. Unknown platforms return `400 {"error":"unsupported_platform"}`.
+
+The mobile client checks after launch, whenever it returns to the foreground, and when the user manually checks from Settings. The Relay may cache this public response for at most five minutes. Operators must publish the store/download target before increasing either configured version.
+
 ### `POST /auth/register`
 
 Request:
