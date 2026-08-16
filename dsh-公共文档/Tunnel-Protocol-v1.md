@@ -80,3 +80,9 @@ If the browser closes an in-flight request, Relay sends `http_close` on the same
 4. Either side closes using `ws_close {channel, code, reason}`.
 
 The Relay maps a browser WebSocket upgrade to one channel. It must enforce the same WebView cookie authorization before creating the channel. The Companion must close all local channels when the Relay socket closes.
+
+## Resource boundaries
+
+The v1 envelope is unchanged by resource enforcement. The public MVP Relay defaults to a 4 MiB incoming WebSocket frame limit, 2 MiB forwarded HTTP request limit, and 32 MiB total HTTP response limit. It accepts at most 32 HTTP and 16 WebSocket tunnel channels per device, subject to lower global capacity limits. An oversized WebSocket frame closes only that connection with code `1009`; it must not terminate the Relay process.
+
+When an HTTP channel exceeds the response limit, Relay sends `http_close` to Companion and ends the browser response. Companion must release the loopback request after `http_close`. Responses for a channel owned by another authenticated device are ignored.

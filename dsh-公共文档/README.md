@@ -16,16 +16,13 @@ The product baseline remains in `../Kimi_Agent_DeepSeek Harness 移动端/`. Whe
 
 ## Install the computer plugin
 
-From a local checkout:
+From the immutable GitHub release tag:
 
 ```bash
-cd dsh-plugin
-npm install
-npm run build
-dsh plugin --profile web add "/absolute/path/to/dsh-plugin"
+dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.0
 dsh web
 ```
 
-Profiles that previously installed the development name must first run `dsh plugin --profile web remove dsh-mobile-remote-companion`, then add the local path again. This prevents both bundle identities from starting together.
+For local development, build `dsh-plugin` and add its absolute directory path instead. Profiles that previously installed the development name must first run `dsh plugin --profile web remove dsh-mobile-remote-companion`, then add the current package. This prevents both bundle identities from starting together.
 
-The local installable package name is `dsh-mobile`. Its DSH bundle starts and stops the Companion with `dsh web`, pins workspace selection to DSH's in-browser directory picker, and stores pairing credentials at `~/.dsh-remote/config.json` by default. The unscoped npm name is already occupied, so public distribution must first resolve package ownership or use an organization scope.
+The installable package name is `@april-jk/dsh-mobile`; its stable Cordis ID and CLI command remain `dsh-mobile`. Its DSH bundle starts and stops the Companion with `dsh web`, pins workspace selection to DSH's in-browser directory picker, and stores pairing credentials at `~/.dsh-remote/config.json` by default. The project is unofficial and independently maintained by the community.

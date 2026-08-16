@@ -8,6 +8,8 @@ Access tokens are bearer tokens with a seven-day lifetime. Refresh tokens are op
 
 REST API errors use `{"error":"<code>"}`. Errors returned by the WebView proxy use `{"reason":"<code>"}` because they are rendered as user-facing connection states by the mobile client.
 
+Every JSON API body is limited to 64 KiB by default. Oversized bodies return `413 {"error":"request_too_large","limit":65536}`. Rate-limited API calls return `429 {"error":"rate_limited","retryAfter":<seconds>}` with the same delay in the `Retry-After` header. Authentication and pairing routes have stricter per-client limits in addition to the general API limit.
+
 ## Mobile version policy
 
 ### `GET /app/version?platform=android|ios` (Public)
@@ -19,7 +21,7 @@ Returns the release policy for one mobile platform:
   "platform": "android",
   "latestVersion": "0.2.0",
   "minimumVersion": "0.1.0",
-  "downloadUrl": "https://play.google.com/store/apps/details?id=com.deepseek.dshremote",
+  "downloadUrl": "https://play.google.com/store/apps/details?id=io.github.apriljk.dshremote",
   "releaseNotes": "Improved remote session stability."
 }
 ```
@@ -143,7 +145,14 @@ The bootstrap request uses `/s/:deviceId/`. After the cookie is set, Relay proxi
 | --- | --- | --- |
 | `401` | `{"error":"invalid_web_session"}` | Request a new web ticket and reload silently |
 | `403` | `{"error":"forbidden"}` | The account does not own the device or cannot request a ticket |
+| `413` | `{"reason":"request_too_large","limit":2097152}` | The forwarded request exceeds the Relay limit |
+| `429` | `{"reason":"too_many_tunnels"}` | Per-device or Relay tunnel capacity is temporarily exhausted |
+| `429` | `{"error":"rate_limited","retryAfter":<seconds>}` | The client exceeded its forwarded-request rate |
+| `502` | `{"reason":"response_too_large"}` | The local DSH response exceeded the Relay limit |
 | `503` | `{"reason":"device_offline"}` | Computer/Companion is offline |
 | `503` | `{"reason":"dsh_offline"}` | Computer is online but local DSH is unavailable |
 | `504` | `{"reason":"tunnel_timeout"}` | Retryable connectivity failure |
+
+Default per-instance boundaries are 2 MiB per forwarded request, 32 MiB per forwarded response, 32 concurrent HTTP tunnels and 16 concurrent WebSocket tunnels per device, and 512 HTTP plus 256 WebSocket tunnels globally. Deployments may lower these limits. Clients must treat `429` and `503` capacity responses as retryable with backoff.
+
 The mobile client must allow navigation inside the Relay origin only. External origins open in the operating system browser.
