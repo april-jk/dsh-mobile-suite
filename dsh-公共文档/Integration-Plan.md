@@ -13,15 +13,17 @@
 
 ## Local end-to-end sequence
 
-1. Start local DSH on `127.0.0.1:3080`.
+1. Build `dsh-plugin`, then install it with `dsh plugin --profile web add "/absolute/path/to/dsh-plugin"`.
 2. Start Relay with a development database and an explicit local JWT secret.
-3. Start Companion pointed to the local Relay; run pairing to produce a QR payload and code.
+3. Start `dsh web`; the installed bundle starts Companion, binds it to DSH's actual web port, and produces a QR payload/code when unpaired.
 4. Register/login in mobile, claim the code, and wait for Companion confirmation.
 5. Verify `/devices` reports `online` plus `dshStatus: online`.
 6. Request a ticket, load `/s/:deviceId/`, and submit a new DSH task.
 7. Verify browser-to-Companion WebSocket traffic transports streaming output.
 8. Stop local DSH and confirm `503 dsh_offline`; stop Companion and confirm `503 device_offline`.
 9. Unbind from mobile and verify Companion cannot reconnect with its revoked token.
+
+The MVP cloud verification on 2026-08-16 completed steps 1-7 against `https://dsh-relay-production.up.railway.app`: the remote browser loaded DSH assets and client plugins, selected a host directory through `host.listDirectory`, created a workspace/session, and delivered `session.prompt`. Model execution then stopped at the expected `MISSING_CREDENTIAL` boundary because the isolated DSH profile intentionally had no DeepSeek API key.
 
 ## Railway release gate
 

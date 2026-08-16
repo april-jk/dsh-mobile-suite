@@ -32,7 +32,7 @@
 - `DELETE /devices/:id`
 - `POST /web-ticket` `{ deviceId }`：返回一次性 60 秒 ticket
 
-WebView 第一次请求使用 `GET /s/{deviceId}/?ticket=<ticket>`。Relay 校验后设置 HttpOnly Cookie（路径限定为该设备、有效 2 小时），后续请求和 WebSocket 升级均使用 Cookie。ticket 只能使用一次。
+WebView 第一次请求使用 `GET /s/{deviceId}/?ticket=<ticket>`。Relay 校验后设置 `HttpOnly; SameSite=Lax; Path=/` Cookie（有效 2 小时），后续请求和 WebSocket 升级均使用 Cookie。`Path=/` 用于承载 DSH 生成的 `/assets`、`/plugins`、`/api` 等绝对路径。ticket 只能使用一次。
 
 ## 隧道信封
 
@@ -41,7 +41,7 @@ Companion 与 Relay 的每一帧都是 JSON：
 ```json
 {
   "v": 1,
-  "type": "auth | auth_ok | http_req | http_res | ws_open | ws_open_ok | ws_frame | ws_close | status | ping | pong | event",
+  "type": "auth | auth_ok | http_req | http_res | http_close | ws_open | ws_open_ok | ws_frame | ws_close | status | ping | pong | event",
   "channel": "ch_uuid",
   "id": "message_uuid",
   "ts": 1755500000000,
@@ -55,7 +55,7 @@ Companion 与 Relay 的每一帧都是 JSON：
 {"v":1,"type":"auth","id":"...","ts":0,"payload":{"deviceId":"dev_x","deviceToken":"..."}}
 ```
 
-HTTP 请求 payload：`{ method, path, headers, bodyB64 }`；响应 payload：`{ status, headers, bodyB64 }`。body 使用 base64，MVP 单体上限 1 MiB。`Host` 由 Companion 重写为本地 DSH 地址。
+HTTP 请求 payload：`{ method, path, headers, bodyB64 }`；响应 payload：`{ status?, headers?, bodyB64, seq, final }`。body 使用 base64，响应按 `seq` 递增分片，`final:false` 保持连接，`final:true` 结束，因此支持 SSE 和长响应。`Host`、`Origin`、`Referer` 由 Companion 重写为本地 DSH 地址。浏览器中断请求时 Relay 发送同 channel 的 `http_close`，Companion 取消本地请求。
 
 WebSocket 使用同一 `channel`：Relay 发 `ws_open`，双方互发 `ws_frame`，任一侧关闭时发 `ws_close`。不要在移动端拦截 WebSocket。
 
@@ -65,5 +65,5 @@ WebSocket 使用同一 `channel`：Relay 发 `ws_open`，双方互发 `ws_frame`
 
 - Relay 暂未提供端到端加密，依赖 TLS/WSS；这是公开 Beta 的已披露限制。
 - Relay 为单实例，SQLite 需要 Railway 持久卷。
-- 大于 1 MiB 的 HTTP 响应返回 502；SSE 长流不保证完整支持。
+- HTTP 请求体仍由 Relay 在转发前缓冲；HTTP 响应与 SSE 已支持分片流式转发。
 - 事件只保留协议和最近 50 条存储，不做 DSH WebSocket 内容推断。

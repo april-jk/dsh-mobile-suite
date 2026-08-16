@@ -107,9 +107,9 @@ The mobile client loads:
 https://<relay-host>/s/dev_xxx/?ticket=<ticket>
 ```
 
-On success the Relay consumes the ticket, sets an `HttpOnly; SameSite=Lax; Path=/s/dev_xxx` session cookie (two-hour lifetime), then serves the proxied DSH response. Public HTTPS deployments must additionally set `Secure`. No bearer token or device secret is passed into the WebView.
+On success the Relay consumes the ticket, sets an `HttpOnly; SameSite=Lax; Path=/` session cookie (two-hour lifetime), then serves the proxied DSH response. Public HTTPS deployments additionally set `Secure`. `Path=/` is required because DSH emits absolute `/assets`, `/plugins`, `/api`, and root WebSocket URLs. No bearer token or device secret is passed into the WebView.
 
-All subsequent `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, and WebSocket-upgrade traffic beneath `/s/:deviceId/` uses that cookie. A ticket is never accepted for another device.
+The bootstrap request uses `/s/:deviceId/`. After the cookie is set, Relay proxies both that prefix and DSH's absolute root HTTP/WebSocket routes to the cookie-bound device. A ticket is never accepted for another device.
 
 ## User-facing proxy errors
 
@@ -120,6 +120,4 @@ All subsequent `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, and WebSocket-upgrade tr
 | `503` | `{"reason":"device_offline"}` | Computer/Companion is offline |
 | `503` | `{"reason":"dsh_offline"}` | Computer is online but local DSH is unavailable |
 | `504` | `{"reason":"tunnel_timeout"}` | Retryable connectivity failure |
-| `502` | `{"reason":"body_too_large"}` | MVP response-size limitation |
-
 The mobile client must allow navigation inside the Relay origin only. External origins open in the operating system browser.

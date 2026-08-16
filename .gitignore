@@ -1,3 +1,6 @@
 .DS_Store
 .omx/state/*.local.json
 *.log
+dsh-mobile/
+dsh-plugin/
+dsh-relay/

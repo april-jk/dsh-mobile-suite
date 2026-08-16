@@ -17,7 +17,7 @@ Every frame is UTF-8 JSON:
 }
 ```
 
-`channel` is required for tunnel messages and absent for control messages. `id` is unique per sender. Unknown additive fields must be ignored. Frames are limited to 1 MiB of decoded body content in MVP.
+`channel` is required for tunnel messages and absent for control messages. `id` is unique per sender. Unknown additive fields must be ignored.
 
 ## Connection lifecycle
 
@@ -60,13 +60,17 @@ Relay to Companion:
 }
 ```
 
-The path is the suffix after `/s/:deviceId`, always begins with `/`, and must not be interpreted as a URL. The Companion forwards it to `http://127.0.0.1:<dshPort>`, strips hop-by-hop headers, rewrites `Host`, and returns:
+The path is the suffix after `/s/:deviceId` for the bootstrap request, or the original absolute DSH path after cookie authorization. It always begins with `/` and must not be interpreted as a URL. The Companion forwards it only to `http://127.0.0.1:<dshPort>`, rewrites `Host`, `Origin`, and `Referer` for that local authority, and removes forwarded proxy identity headers.
+
+Responses are streamed as an initial header frame, zero or more body frames, and one final frame:
 
 ```json
-{"v":1,"type":"http_res","channel":"ch_a1b2","id":"uuid","ts":1755500000000,"payload":{"status":200,"headers":{"content-type":"application/json"},"bodyB64":"eyJvayI6dHJ1ZX0="}}
+{"v":1,"type":"http_res","channel":"ch_a1b2","id":"uuid","ts":1755500000000,"payload":{"status":200,"headers":{"content-type":"text/event-stream"},"bodyB64":"","seq":0,"final":false}}
 ```
 
-MVP rejects requests or responses over 1 MiB with a `502` proxy error. Chunking fields `seq` and `final` are reserved for a later version.
+Each following frame increments `seq`. `bodyB64` may be empty. `final:false` keeps the Relay response open; exactly one `final:true` frame ends it. This carries DSH boot responses and SSE without buffering the entire response.
+
+If the browser closes an in-flight request, Relay sends `http_close` on the same channel. Companion destroys the matching loopback request and releases it. A late `http_res` for a closed channel is ignored.
 
 ## WebSocket forwarding
 
