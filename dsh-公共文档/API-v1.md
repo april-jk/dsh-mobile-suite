@@ -6,29 +6,31 @@ Base URL: `https://<relay-host>` in cloud environments and `http://127.0.0.1:<po
 
 Access tokens are bearer tokens with a seven-day lifetime. Refresh tokens are opaque, single-use credentials with a 30-day lifetime. The mobile client stores both in secure storage. The Relay stores only a refresh-token hash.
 
+REST API errors use `{"error":"<code>"}`. Errors returned by the WebView proxy use `{"reason":"<code>"}` because they are rendered as user-facing connection states by the mobile client.
+
 ### `POST /auth/register`
 
 Request:
 
 ```json
-{"email":"person@example.com","password":"at-least-12-characters"}
+{"email":"person@example.com","password":"at-least-8-characters"}
 ```
 
-Returns `201` with the same body as login. Reject duplicate emails with `409 {"reason":"email_taken"}`. Password complexity policy is documented by Relay implementation, but must have a minimum length of 12.
+Returns `201` with the same body as login. Reject duplicate emails with `409 {"error":"email_exists"}`. Passwords must have a minimum length of 8 characters for MVP.
 
 ### `POST /auth/login`
 
 Request: same fields as registration. Returns `200`:
 
 ```json
-{"accessToken":"...","refreshToken":"...","expiresIn":604800}
+{"accessToken":"...","refreshToken":"..."}
 ```
 
-Reject invalid credentials with `401 {"reason":"invalid_credentials"}`. Do not reveal whether an email exists.
+Reject invalid credentials with `401 {"error":"invalid_credentials"}`. Do not reveal whether an email exists.
 
 ### `POST /auth/refresh`
 
-Request: `{"refreshToken":"..."}`. Returns a rotated token pair. A used, expired, or invalid refresh token returns `401 {"reason":"invalid_refresh_token"}`.
+Request: `{"refreshToken":"..."}`. Returns a rotated token pair. A used, expired, or invalid refresh token returns `401 {"error":"invalid_refresh_token"}`.
 
 All routes below marked **User** require `Authorization: Bearer <accessToken>`.
 
@@ -44,17 +46,16 @@ Rate-limited, no user authentication. Returns:
 {
   "deviceId":"dev_xxx",
   "deviceSecret":"hex-32-bytes",
-  "pairCode":"482913",
-  "expiresAt":"2026-08-16T06:00:00.000Z",
-  "relay":"wss://<relay-host>/device"
+  "code":"482913",
+  "expiresAt":1786860000000
 }
 ```
 
-The Companion presents the QR payload `{"v":1,"relay":"wss://<relay-host>","code":"482913"}` and retains `deviceId` plus `deviceSecret` locally with restrictive file permissions.
+`expiresAt` is Unix time in milliseconds. The Companion presents the QR payload `{"v":1,"relay":"https://<relay-host>","code":"482913"}` and retains `deviceId` plus `deviceSecret` locally with restrictive file permissions. Local development may use an `http://` Relay origin. The mobile client validates the QR Relay origin but uses its build-configured Relay origin for authenticated API calls.
 
 ### `POST /pair/claim` (User)
 
-Request: `{"code":"482913"}`. Returns `202 {"deviceId":"dev_xxx","status":"claimed"}`. Invalid, expired, used, or another user's claimed code returns `400 {"reason":"invalid_pair_code"}`.
+Request: `{"code":"482913"}`. Returns `200 {"deviceId":"dev_xxx"}`. Invalid, expired, used, or another user's claimed code returns `409 {"error":"invalid_or_expired_code"}`.
 
 ### `POST /pair/confirm` (Companion)
 
@@ -64,7 +65,7 @@ Request:
 {"deviceId":"dev_xxx","deviceSecret":"...","deviceName":"Watson's MacBook Air"}
 ```
 
-Before claim it returns `409 {"reason":"pair_pending"}`. On success it returns `201 {"deviceToken":"..."}`. The Companion persists this token and authenticates its WSS connection using it. The Relay stores only its hash.
+Before claim it returns `202 {"status":"pending"}`. On success it returns `200 {"deviceToken":"..."}`. The Companion persists this token and authenticates its WSS connection using it. The Relay stores only its hash.
 
 ## Devices
 
@@ -79,26 +80,26 @@ Returns `200`:
     "name":"Watson's MacBook Air",
     "online":true,
     "dshStatus":"online",
-    "lastSeenAt":"2026-08-16T06:00:00.000Z"
+    "lastSeenAt":1786860000000
   }]
 }
 ```
 
-`online` reflects the device WSS connection. `dshStatus` is the Companion's latest local health observation.
+`online` reflects the device WSS connection. `dshStatus` is the Companion's latest local health observation. `lastSeenAt` is Unix time in milliseconds or `null`.
 
 ### `PATCH /devices/:id` (User)
 
-Request: `{"name":"New name"}`. Returns the renamed device. The caller must own the device.
+Request: `{"name":"New name"}`. Returns `200 {"ok":true}`. The caller must own the device. Mobile refreshes `GET /devices` after success.
 
 ### `DELETE /devices/:id` (User)
 
-Returns `204`. The Relay immediately revokes the device token and closes the active Companion connection. A later Companion reconnect must receive `auth_fail` and return to pairing.
+Returns `200 {"ok":true}`. The Relay immediately revokes the device token and closes the active Companion connection. A later Companion reconnect must receive `auth_fail` and return to pairing.
 
 ## WebView authorization and proxy
 
 ### `POST /web-ticket` (User)
 
-Request: `{"deviceId":"dev_xxx"}`. Returns `201 {"ticket":"...","expiresIn":60}`. Tickets are single-use, held only in Relay memory or short-lived persistent storage, and are bound to the calling account and device.
+Request: `{"deviceId":"dev_xxx"}`. Returns `200 {"ticket":"...","expiresIn":60}`. Tickets are single-use, held only in Relay memory or short-lived persistent storage, and are bound to the calling account and device.
 
 The mobile client loads:
 
@@ -106,7 +107,7 @@ The mobile client loads:
 https://<relay-host>/s/dev_xxx/?ticket=<ticket>
 ```
 
-On success the Relay consumes the ticket, sets an `HttpOnly; Secure; SameSite=Lax; Path=/s/dev_xxx` session cookie (two-hour lifetime), then serves the proxied DSH response. No bearer token or device secret is passed into the WebView.
+On success the Relay consumes the ticket, sets an `HttpOnly; SameSite=Lax; Path=/s/dev_xxx` session cookie (two-hour lifetime), then serves the proxied DSH response. Public HTTPS deployments must additionally set `Secure`. No bearer token or device secret is passed into the WebView.
 
 All subsequent `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, and WebSocket-upgrade traffic beneath `/s/:deviceId/` uses that cookie. A ticket is never accepted for another device.
 
@@ -114,8 +115,8 @@ All subsequent `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, and WebSocket-upgrade tr
 
 | HTTP | Body | Mobile meaning |
 | --- | --- | --- |
-| `401` | `{"reason":"web_session_expired"}` | Request a new web ticket and reload silently |
-| `403` | `{"reason":"device_forbidden"}` | The account does not own the device |
+| `401` | `{"error":"invalid_web_session"}` | Request a new web ticket and reload silently |
+| `403` | `{"error":"forbidden"}` | The account does not own the device or cannot request a ticket |
 | `503` | `{"reason":"device_offline"}` | Computer/Companion is offline |
 | `503` | `{"reason":"dsh_offline"}` | Computer is online but local DSH is unavailable |
 | `504` | `{"reason":"tunnel_timeout"}` | Retryable connectivity failure |

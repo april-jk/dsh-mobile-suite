@@ -72,7 +72,7 @@ MVP rejects requests or responses over 1 MiB with a `502` proxy error. Chunking 
 
 1. Relay sends `ws_open {channel, path, headers}`.
 2. Companion opens a local DSH WebSocket and responds `ws_open_ok`; failure uses `ws_close`.
-3. Either side sends binary-safe frames with `ws_frame {channel, dataB64, opcode}` where `opcode` is `text` or `binary`.
+3. Either side sends binary-safe frames with `ws_frame {channel, dataB64, opcode}` where `opcode` is `1` for text or `2` for binary.
 4. Either side closes using `ws_close {channel, code, reason}`.
 
 The Relay maps a browser WebSocket upgrade to one channel. It must enforce the same WebView cookie authorization before creating the channel. The Companion must close all local channels when the Relay socket closes.
