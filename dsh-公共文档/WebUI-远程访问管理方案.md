@@ -9,6 +9,27 @@
 - 打印 `dsh web` 地址和“请在 WebUI > 设置 > 远程访问中完成配对”。
 - 当 WebUI 无法启动时，保留 `dsh-mobile status` / `dsh-mobile unpair` 维护命令。
 
+## 硬约束：只通过插件 Hook 扩展 DSH
+
+本方案只修改我们维护的 `dsh-mobile`、`dsh-relay` 和移动端，不修改、fork 或复制 DSH 源码。
+
+允许使用的 DSH 扩展面：
+
+- DSH bundle 的 `cordis.patch.yml` 组合层，用于挂载/卸载我们的 Host 和 Client 插件。
+- Cordis `apply()` / `ctx.effect()` 生命周期 Hook，让 Companion 跟随 `dsh web` 启停。
+- DSH Host webserver 路由注册 Hook，增加 `/dsh-mobile/api/*`，不改已有 `/api/*`。
+- npm manifest 的 `dsh.client` 和 `./client` export，由 DSH 客户端模块加载器发现插件。
+- DSH 公开的 `settings.section` slot Hook，注册“远程访问”页。
+
+禁止的实现方式：
+
+- 修改 `@deepseek-ai/dsh-*` 包、DSH 仓库或 `node_modules` 内文件。
+- 对 DSH 编译后的 JS/CSS/HTML 做文本替换或启动时热补丁。
+- 依赖私有 DOM 结构、CSS selector 或 monkey patch DSH 全局对象插入页面。
+- 在 Relay 或移动端复制一份 DSH WebUI。
+
+验收时必须证明：安装 `dsh-mobile` 后管理页出现；执行 `dsh plugin --profile web remove dsh-mobile` 并重启 DSH 后，管理页、Host 路由和 Companion 连接全部消失，DSH 本体文件哈希不变。
+
 ## 为什么不能只改一个 UI
 
 当前 Relay 的授权模型是“一台电脑归属一个账号”。它能回答哪个账号拥有本机，但不能回答“该账号下哪一部 iPhone/Android 添加了本机”：
