@@ -4,6 +4,8 @@
 
 > **非官方社区项目：** 本项目由社区独立开发和维护，未经 DeepSeek 审核、推荐或背书。当前版本是 MVP，尚未实现端到端加密。
 
+DeepSeek Harness 社区展示帖：[Show Your Plugins! #2520](https://github.com/deepseek-ai/deepseek-harness/discussions/2520)（社区发现入口，不代表官方审核或背书）。
+
 <table>
   <tr>
     <td><img src="docs/images/mobile-login.png" alt="DSH Mobile 登录与 Relay 选择" width="320"></td>
