@@ -1,6 +1,6 @@
 # DSH Remote Workspace
 
-This root repository coordinates three independently versioned applications. It owns shared documentation and planning artifacts only; do not add application source code at the root.
+This root repository coordinates four independently versioned applications. It owns shared documentation and planning artifacts only; do not add application source code at the root.
 
 ## Directory ownership
 
@@ -9,6 +9,7 @@ This root repository coordinates three independently versioned applications. It 
 | `dsh-mobile/` | Flutter mobile client: account UI, pairing scanner, device list, WebView container | Independent |
 | `dsh-plugin/` | Node.js Companion CLI on the user's computer: pairing, DSH discovery, Relay connection, local HTTP/WS forwarding | Independent |
 | `dsh-relay/` | Cloud Relay: accounts, pairing, devices, tickets, WSS routing, persistence, deployment | Independent |
+| `dsh-website/` | Public SEO website: product pages, technical content, downloads, and GitHub Pages deployment | Independent |
 | `dsh-公共文档/` | Cross-team API, protocol, error, release, and integration contracts | Root |
 | `Kimi_Agent_DeepSeek Harness 移动端/` | Product source documents; treat as the v0.1 baseline | Root |
 

@@ -7,3 +7,6 @@
 [submodule "dsh-relay"]
 	path = dsh-relay
 	url = https://github.com/april-jk/dsh-relay.git
+[submodule "dsh-website"]
+	path = dsh-website
+	url = https://github.com/april-jk/dsh-mobile-site.git

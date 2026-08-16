@@ -17,13 +17,14 @@ DeepSeek Harness community post: [Show Your Plugins! #2520](https://github.com/d
 
 ## Components
 
-This repository pins three independently developed and released open-source components as Git submodules:
+This repository pins four independently developed and released open-source components as Git submodules:
 
 | Directory | Purpose | Repository |
 | --- | --- | --- |
 | `dsh-mobile/` | Flutter client for Android and iOS | [april-jk/dsh-mobile](https://github.com/april-jk/dsh-mobile) |
 | `dsh-plugin/` | DSH plugin and Companion running on the computer | [april-jk/dsh-mobile-plugin](https://github.com/april-jk/dsh-mobile-plugin) |
 | `dsh-relay/` | Accounts, pairing, short-lived tickets, and traffic relay | [april-jk/dsh-relay](https://github.com/april-jk/dsh-relay) |
+| `dsh-website/` | Public website, SEO content, and GitHub Pages deployment | [april-jk/dsh-mobile-site](https://github.com/april-jk/dsh-mobile-site) |
 
 The phone never connects directly to the computer. The plugin opens only an outbound WSS connection to the Relay, while DSH remains bound to `127.0.0.1:3080`.
 
@@ -107,4 +108,4 @@ Commit component code in its own repository. This repository maintains cross-com
 
 ## License
 
-The suite and all three components use the [MIT License](LICENSE).
+The suite and all four components use the [MIT License](LICENSE).
