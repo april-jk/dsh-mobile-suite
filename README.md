@@ -44,18 +44,11 @@ Verify the downloaded files:
 shasum -a 256 -c SHA256SUMS
 ```
 
-Install the plugin package into the DSH web profile, then start DSH:
+Install the pinned plugin directly from GitHub, then start DSH. This path does not require a global DSH installation, a source checkout, or a local file path:
 
 ```bash
-dsh plugin --profile web add ./dsh-mobile-plugin.tgz
-dsh web
-```
-
-You can also install the pinned public plugin tag directly:
-
-```bash
-dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.2
-dsh web
+npx @deepseek-ai/dsh plugin --profile web add "github:april-jk/dsh-mobile-plugin#v0.1.2"
+npx @deepseek-ai/dsh web
 ```
 
 Install `dsh-mobile-android.apk` on your Android device. Android may ask you to allow the browser or file manager to install unknown apps. The application ID is `io.github.apriljk.dshremote`.
@@ -68,7 +61,7 @@ Install `dsh-mobile-android.apk` on your Android device. Android may ask you to 
 4. Select the online computer to open its normal DSH Web UI.
 5. Create a task and submit instructions through the existing DSH interface.
 
-The plugin follows the `dsh web` lifecycle and does not need a separate background process. The phone shows the computer as offline when the computer or DSH is stopped, or when the plugin is disconnected from the Relay.
+The plugin follows the DSH Web process lifecycle and does not need a separate background process. The phone shows the computer as offline when the computer or DSH is stopped, or when the plugin is disconnected from the Relay.
 
 ## Deploy a private Relay
 
@@ -86,7 +79,7 @@ For public access, put an HTTPS reverse proxy in front of port `8787` and back u
 The computer and phone must use the same Relay:
 
 ```bash
-DSH_RELAY=https://relay.example.com dsh web
+DSH_RELAY=https://relay.example.com npx @deepseek-ai/dsh web
 ```
 
 On the mobile login screen, tap **Relay**, or open **Settings > Relay Server** after logging in, and enter the same HTTPS origin. Changing the Relay logs out the current account because accounts and tokens are isolated between Relay instances.

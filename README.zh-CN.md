@@ -44,18 +44,11 @@ DeepSeek Harness 社区展示帖：[Show Your Plugins! #2520](https://github.com
 shasum -a 256 -c SHA256SUMS
 ```
 
-将插件包安装到 DSH Web profile，并启动 DSH：
+直接从 GitHub 安装固定版本的插件并启动 DSH。该方式不要求全局安装 DSH、不需要克隆源码，也不需要填写本地文件路径：
 
 ```bash
-dsh plugin --profile web add ./dsh-mobile-plugin.tgz
-dsh web
-```
-
-也可以直接安装已锁定的公开插件版本：
-
-```bash
-dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.2
-dsh web
+npx @deepseek-ai/dsh plugin --profile web add "github:april-jk/dsh-mobile-plugin#v0.1.2"
+npx @deepseek-ai/dsh web
 ```
 
 在 Android 设备上安装 `dsh-mobile-android.apk`。首次安装第三方 APK 时，系统会要求允许浏览器或文件管理器安装未知应用。应用包名为 `io.github.apriljk.dshremote`。
@@ -68,7 +61,7 @@ dsh web
 4. 选择在线电脑，手机会打开正常的 DSH Web UI。
 5. 在 DSH 原有界面创建任务并提交指令。
 
-插件随 `dsh web` 启停，无需另开后台进程。电脑离线、DSH 未启动或插件未连接 Relay 时，手机会显示该电脑离线。
+插件随 DSH Web 进程启停，无需另开后台进程。电脑离线、DSH 未启动或插件未连接 Relay 时，手机会显示该电脑离线。
 
 ## 私有部署 Relay
 
@@ -86,7 +79,7 @@ curl http://127.0.0.1:8787/health
 电脑和手机必须指向同一个 Relay：
 
 ```bash
-DSH_RELAY=https://relay.example.com dsh web
+DSH_RELAY=https://relay.example.com npx @deepseek-ai/dsh web
 ```
 
 在手机登录页点 **Relay**，或登录后打开 **设置 > Relay 服务器**，输入同一个 HTTPS 地址。切换 Relay 会退出当前账号，因为不同 Relay 的账号和 Token 完全独立。
