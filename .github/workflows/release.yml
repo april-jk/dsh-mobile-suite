@@ -39,6 +39,17 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Require the tag and component versions to match
+        run: |
+          release_version="${GITHUB_REF_NAME#v}"
+          plugin_version="$(node --print "require('./dsh-plugin/package.json').version")"
+          relay_version="$(node --print "require('./dsh-relay/package.json').version")"
+          mobile_version="$(sed -n 's/^version: \([^+]*\).*/\1/p' dsh-mobile/pubspec.yaml)"
+          test "$GITHUB_REF_NAME" = "v$release_version"
+          test "$plugin_version" = "$release_version"
+          test "$relay_version" = "$release_version"
+          test "$mobile_version" = "$release_version"
+
       - name: Verify and package the DSH plugin
         working-directory: dsh-plugin
         run: |
@@ -66,22 +77,29 @@ jobs:
           flutter analyze
           flutter test
 
+      - name: Verify the public website
+        working-directory: dsh-website
+        run: |
+          npm ci
+          npm run check
+          npm run build
+
       - name: Require Android release signing secrets
         env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          DSH_ANDROID_KEYSTORE_BASE64: ${{ secrets.DSH_ANDROID_KEYSTORE_BASE64 || secrets.ANDROID_KEYSTORE_BASE64 }}
           DSH_ANDROID_STORE_PASSWORD: ${{ secrets.DSH_ANDROID_STORE_PASSWORD }}
           DSH_ANDROID_KEY_ALIAS: ${{ secrets.DSH_ANDROID_KEY_ALIAS }}
           DSH_ANDROID_KEY_PASSWORD: ${{ secrets.DSH_ANDROID_KEY_PASSWORD }}
         run: |
-          test -n "$ANDROID_KEYSTORE_BASE64"
+          test -n "$DSH_ANDROID_KEYSTORE_BASE64"
           test -n "$DSH_ANDROID_STORE_PASSWORD"
           test -n "$DSH_ANDROID_KEY_ALIAS"
           test -n "$DSH_ANDROID_KEY_PASSWORD"
 
       - name: Decode the Android signing key
         env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        run: printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/dsh-mobile-release.jks"
+          DSH_ANDROID_KEYSTORE_BASE64: ${{ secrets.DSH_ANDROID_KEYSTORE_BASE64 || secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: printf '%s' "$DSH_ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/dsh-mobile-release.jks"
 
       - name: Build the signed Android APK
         working-directory: dsh-mobile

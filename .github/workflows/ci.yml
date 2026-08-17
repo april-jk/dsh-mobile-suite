@@ -1,0 +1,105 @@
+name: Suite CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: suite-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.3
+          cache: npm
+          cache-dependency-path: dsh-plugin/package-lock.json
+      - working-directory: dsh-plugin
+        run: npm ci
+      - working-directory: dsh-plugin
+        run: npm run build
+      - working-directory: dsh-plugin
+        run: npm test
+      - name: Verify committed plugin bundle
+        run: git -C dsh-plugin diff --exit-code -- dist
+      - working-directory: dsh-plugin
+        run: npm pack --dry-run
+
+  relay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.3
+          cache: npm
+          cache-dependency-path: dsh-relay/package-lock.json
+      - working-directory: dsh-relay
+        run: npm ci
+      - working-directory: dsh-relay
+        run: npm run build
+      - working-directory: dsh-relay
+        run: npm test
+      - working-directory: dsh-relay
+        run: npm audit --omit=dev
+      - name: Build Relay container
+        working-directory: dsh-relay
+        run: docker build -t dsh-relay:ci .
+
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.38.10
+          channel: stable
+          cache: true
+      - working-directory: dsh-mobile
+        run: flutter pub get
+      - working-directory: dsh-mobile
+        run: dart format --output=none --set-exit-if-changed lib test
+      - working-directory: dsh-mobile
+        run: flutter analyze
+      - working-directory: dsh-mobile
+        run: flutter test
+      - name: Build unsigned Android release for compilation coverage
+        working-directory: dsh-mobile
+        run: flutter build apk --release
+
+  website:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22.22.3
+          cache: npm
+          cache-dependency-path: dsh-website/package-lock.json
+      - working-directory: dsh-website
+        run: npm ci
+      - working-directory: dsh-website
+        run: npm run check
+      - working-directory: dsh-website
+        run: npm run build

@@ -4,7 +4,7 @@
 
 用 Android 手机远程打开电脑上的 DeepSeek Harness Web UI，并通过原有界面创建和下达新任务。
 
-> **非官方社区项目：** 本项目由社区独立开发和维护，未经 DeepSeek 审核、推荐或背书。当前版本是 MVP，尚未实现端到端加密。
+> **非官方社区项目：** 本项目由社区独立开发和维护，未经 DeepSeek 审核、推荐或背书。0.1.3 已在 Mobile 与 Companion 之间对 DSH 会话内容进行端到端加密。
 
 DeepSeek Harness 社区展示帖：[Show Your Plugins! #2520](https://github.com/deepseek-ai/deepseek-harness/discussions/2520)（社区发现入口，不代表官方审核或背书）。
 
@@ -57,8 +57,8 @@ npx @deepseek-ai/dsh web
 ## 配对和远程任务
 
 1. 在手机应用注册或登录账号。
-2. 在电脑的 DSH Web UI 打开 **Settings > Remote Access**，创建六位配对码或二维码。
-3. 在手机电脑列表点 **+**，扫码或输入六位配对码。
+2. 在电脑的 DSH Web UI 打开 **Settings > Remote Access**，创建加密配对二维码。
+3. 在手机电脑列表点 **+** 并扫码。由于六位码无法建立加密密钥，0.1.3 不支持仅输入六位码配对。
 4. 选择在线电脑，手机会打开正常的 DSH Web UI。
 5. 在 DSH 原有界面创建任务并提交指令。
 
@@ -91,7 +91,8 @@ DSH_RELAY=https://relay.example.com npx @deepseek-ai/dsh web
 
 - 公网传输必须使用 HTTPS/WSS；电脑端不会开放公网监听端口。
 - 移动端只持有账号 Token 和短期 Web Ticket，不会得到电脑设备密钥。
-- Relay 不持久化 DSH HTTP/WebSocket 请求体或响应体，但 MVP 没有应用层端到端加密，Relay 进程能够看到中转内容。
+- DSH HTTP、SSE 与 WebSocket 内容在 Mobile 和 Companion 之间端到端加密；Relay 只路由不透明密文帧，不持有内容密钥。
+- Relay 仍可观察账号/设备关系、在线状态、连接时间、密文长度和流量时序。0.1.3 不提供前向保密。
 - Relay 会保存账号、设备、配对和受限的访问日志元数据；公开商店发布前仍需完成账号删除、隐私政策和数据合规事项。
 
 安全问题请按 [SECURITY.md](SECURITY.md) 私下报告，不要在公开 Issue 中披露可利用细节。
@@ -105,6 +106,8 @@ git submodule update --init --recursive
 ```
 
 组件代码在各自仓库提交。本仓库只维护跨端文档、统一 Release 工作流和经过验证的组件提交指针。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+
+每次向 `main` 推送或提交 Pull Request，都会执行各组件构建和测试、校验 Plugin 已提交 bundle、构建 Relay 容器与 Android APK，并检查公开网站。发布 Suite 时，先推送相同的组件 Tag、更新本仓库固定的 submodule，再向本仓库推送同名 Tag。Release 工作流会先确认 Tag 与 Plugin、Relay、Mobile 包版本完全一致，再生成已签名产物与校验和。
 
 ## 许可证
 

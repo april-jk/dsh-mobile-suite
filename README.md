@@ -4,7 +4,7 @@
 
 Open the DeepSeek Harness Web UI on your computer from an Android phone, then create tasks and submit instructions through the familiar DSH interface.
 
-> **Unofficial community project:** this project is independently developed and maintained by the community. It is not reviewed, endorsed, or supported by DeepSeek. The current release is an MVP and does not yet provide end-to-end encryption.
+> **Unofficial community project:** this project is independently developed and maintained by the community. It is not reviewed, endorsed, or supported by DeepSeek. Release 0.1.3 encrypts DSH session content end to end between Mobile and Companion.
 
 DeepSeek Harness community post: [Show Your Plugins! #2520](https://github.com/deepseek-ai/deepseek-harness/discussions/2520). This is a community discovery entry, not an official review or endorsement.
 
@@ -57,8 +57,8 @@ Install `dsh-mobile-android.apk` on your Android device. Android may ask you to 
 ## Pair and run remote tasks
 
 1. Register or log in from the mobile app.
-2. On the computer, open **Settings > Remote Access** in DSH and create a six-digit pairing code or QR code.
-3. Tap **+** in the mobile device list, then scan the QR code or enter the six-digit code.
+2. On the computer, open **Settings > Remote Access** in DSH and create an encrypted pairing QR code.
+3. Tap **+** in the mobile device list and scan the QR code. Six-digit-only pairing is disabled because it cannot establish the encryption key.
 4. Select the online computer to open its normal DSH Web UI.
 5. Create a task and submit instructions through the existing DSH interface.
 
@@ -91,7 +91,8 @@ See the [Relay README](https://github.com/april-jk/dsh-relay#readme) for all env
 
 - Public traffic must use HTTPS/WSS; the computer never opens a public listening port.
 - The mobile app receives account tokens and short-lived web tickets, never the computer's device credential.
-- The Relay does not persist DSH HTTP/WebSocket request or response bodies. The MVP has no application-level end-to-end encryption, so the Relay process can see traffic while forwarding it.
+- DSH HTTP, SSE, and WebSocket content is encrypted end to end between Mobile and Companion. The Relay routes opaque frames and does not receive the content key.
+- The Relay can still observe account/device associations, online state, connection time, ciphertext length, and traffic timing. Version 0.1.3 does not provide forward secrecy.
 - The Relay stores accounts, devices, pairing state, and bounded access-log metadata. Account deletion, a privacy policy, and related compliance work are still required before app-store distribution.
 
 Report security issues privately as described in [SECURITY.md](SECURITY.md). Do not disclose exploitable details in a public issue.
@@ -105,6 +106,8 @@ git submodule update --init --recursive
 ```
 
 Commit component code in its own repository. This repository maintains cross-component documentation, the unified release workflow, and tested component revisions. See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute.
+
+Every push and pull request to `main` runs the component builds and tests, verifies the committed plugin bundle, builds the Relay container and Android APK, and checks the public website. To publish the suite, first push matching component tags, update the pinned submodules, then push the same tag to this repository. The release workflow rejects any tag that does not match the Plugin, Relay, and Mobile package versions before producing signed assets and checksums.
 
 ## License
 
