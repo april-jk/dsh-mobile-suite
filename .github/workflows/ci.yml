@@ -75,7 +75,7 @@ jobs:
           channel: stable
           cache: true
       - working-directory: dsh-mobile
-        run: flutter pub get
+        run: flutter pub get --enforce-lockfile
       - working-directory: dsh-mobile
         run: dart format --output=none --set-exit-if-changed lib test
       - working-directory: dsh-mobile

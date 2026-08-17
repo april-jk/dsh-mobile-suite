@@ -20,7 +20,7 @@ The product baseline remains in `../Kimi_Agent_DeepSeek Harness 移动端/`. Whe
 From the immutable GitHub release tag:
 
 ```bash
-dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.3
+dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.4
 dsh web
 ```
 

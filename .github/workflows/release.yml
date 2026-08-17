@@ -72,7 +72,7 @@ jobs:
       - name: Verify the mobile app
         working-directory: dsh-mobile
         run: |
-          flutter pub get
+          flutter pub get --enforce-lockfile
           dart format --output=none --set-exit-if-changed lib test
           flutter analyze
           flutter test
@@ -110,8 +110,7 @@ jobs:
           DSH_ANDROID_KEY_PASSWORD: ${{ secrets.DSH_ANDROID_KEY_PASSWORD }}
         run: |
           flutter build apk --release \
-            --build-name="${GITHUB_REF_NAME#v}" \
-            --build-number="$GITHUB_RUN_NUMBER"
+            --build-name="${GITHUB_REF_NAME#v}"
           APK_SIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           test -x "$APK_SIGNER"
           "$APK_SIGNER" verify --verbose --print-certs build/app/outputs/flutter-apk/app-release.apk
@@ -129,7 +128,25 @@ jobs:
       - name: Publish the immutable GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            existing_dir="$(mktemp -d)"
+            expected_names="$(find release-dist -maxdepth 1 -type f -exec basename {} \; | sort)"
+            existing_names="$(gh release view "$GITHUB_REF_NAME" --json assets --jq '.assets[].name' | sort)"
+            if [[ "$existing_names" != "$expected_names" ]]; then
+              echo "Release $GITHUB_REF_NAME already exists with a different asset set" >&2
+              exit 1
+            fi
+            gh release download "$GITHUB_REF_NAME" --dir "$existing_dir"
+            if ! cmp --silent release-dist/SHA256SUMS "$existing_dir/SHA256SUMS"; then
+              echo "Release $GITHUB_REF_NAME already exists with different asset hashes" >&2
+              exit 1
+            fi
+            (cd "$existing_dir" && sha256sum --check SHA256SUMS)
+            echo "Release $GITHUB_REF_NAME already contains the exact assets; nothing to publish"
+            exit 0
+          fi
           gh release create "$GITHUB_REF_NAME" release-dist/* \
             --title "DSH Mobile Suite ${GITHUB_REF_NAME}" \
             --generate-notes \

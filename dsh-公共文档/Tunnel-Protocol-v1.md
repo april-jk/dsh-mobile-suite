@@ -19,7 +19,7 @@ Every frame is UTF-8 JSON:
 
 `channel` is required for tunnel messages and absent for control messages. `id` is unique per sender. Unknown additive fields must be ignored.
 
-DSH Remote 0.1.3 uses this envelope as the encrypted inner data-plane format defined by [Tunnel-E2EE-v1.md](Tunnel-E2EE-v1.md). The Relay sees only the outer `client_hello`, `server_hello`, `sealed`, `client_close`, and `device_close` message types. It MUST NOT receive the inner channel or HTTP/WS payload in plaintext. Legacy direct browser forwarding is disabled in production.
+DSH Remote 0.1.4 uses this envelope as the encrypted inner data-plane format defined by [Tunnel-E2EE-v1.md](Tunnel-E2EE-v1.md). The Relay sees only the outer `client_hello`, `server_hello`, `sealed`, `client_close`, and `device_close` message types. It MUST NOT receive the inner channel or HTTP/WS payload in plaintext. Legacy direct browser forwarding is disabled in production.
 
 ## Connection lifecycle
 

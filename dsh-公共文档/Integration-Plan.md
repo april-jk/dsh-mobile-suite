@@ -13,7 +13,7 @@
 
 ## Local end-to-end sequence
 
-1. Build `dsh-plugin` 0.1.3, then install it with `dsh plugin --profile web add "/absolute/path/to/dsh-plugin"`.
+1. Build `dsh-plugin` 0.1.4, then install it with `dsh plugin --profile web add "/absolute/path/to/dsh-plugin"`.
 2. Start Relay with a development database and an explicit local JWT secret.
 3. Start `dsh web`; the installed bundle starts Companion and binds it to DSH's actual web port. Open **Settings > Remote Access** and explicitly generate the QR payload/code when unpaired.
 4. Register/login in mobile, claim the code, and wait for Companion confirmation.

@@ -1,6 +1,6 @@
 # DSH Sealed Tunnel E2EE Profile v1
 
-This profile defines the application-layer encryption used by DSH Remote 0.1.3. The Relay authenticates accounts and devices and routes frames, but never receives the content-encryption key or plaintext DSH traffic.
+This profile defines the application-layer encryption used by DSH Remote 0.1.4. The Relay authenticates accounts and devices and routes frames, but never receives the content-encryption key or plaintext DSH traffic.
 
 ## Security boundary
 
