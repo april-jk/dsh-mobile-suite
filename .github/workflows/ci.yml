@@ -82,9 +82,9 @@ jobs:
         run: flutter analyze
       - working-directory: dsh-mobile
         run: flutter test
-      - name: Build unsigned Android release for compilation coverage
+      - name: Build Android debug APK for compilation coverage
         working-directory: dsh-mobile
-        run: flutter build apk --release
+        run: flutter build apk --debug
 
   website:
     runs-on: ubuntu-latest
