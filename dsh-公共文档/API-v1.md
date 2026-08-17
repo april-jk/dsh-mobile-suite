@@ -56,6 +56,8 @@ Request: `{"refreshToken":"..."}`. Returns a rotated token pair. A used, expired
 
 All routes below marked **User** require `Authorization: Bearer <accessToken>`.
 
+The browser client uses `/web-auth/register`, `/web-auth/login`, `/web-auth/session`, and `/web-auth/logout`. Successful registration or login sets a signed `dsh_web_auth` cookie with `HttpOnly; SameSite=Strict; Path=/`; browser JavaScript never receives bearer or refresh tokens. Cookie-authenticated mutations require a same-origin browser request. Native bearer-token behavior is unchanged.
+
 ## Pairing
 
 The six-digit code and device secret are deliberately separate. The Companion owns the secret; the mobile client receives only the device identity after claim.
@@ -73,7 +75,7 @@ Rate-limited, no user authentication. Returns:
 }
 ```
 
-`expiresAt` is Unix time in milliseconds. The Companion also generates a local 32-byte E2EE master key and presents `{"v":2,"relay":"https://<relay-host>","code":"482913","e2eeKey":"<base64url>"}`. The key is never sent to the Relay. Production Mobile accepts only this QR form; six-digit manual pairing cannot establish the E2EE trust root.
+`expiresAt` is Unix time in milliseconds. The Companion also generates a local 32-byte E2EE master key and presents `https://<relay-host>/app/#/pair?code=482913&key=<base64url>`. The URL fragment is never sent to the Relay. Mobile accepts this link and the legacy version 2 JSON QR form; six-digit manual pairing cannot establish the E2EE trust root.
 
 ### `POST /pair/claim` (User)
 
@@ -138,6 +140,14 @@ http://127.0.0.1:<ephemeral>/?bootstrap=<local-capability>
 The loopback gateway consumes the local bootstrap capability, sets an `HttpOnly; SameSite=Strict; Path=/` cookie, and serves decrypted responses. DSH absolute `/assets`, `/plugins`, `/api`, and root WebSocket URLs remain on the loopback origin. No Relay bearer token, device credential, or E2EE key enters WebView JavaScript.
 
 Relay `/client-tunnel` forwards only opaque E2EE frames. The legacy `/s/:deviceId` proxy is disabled by default and MUST NOT be used as an automatic fallback.
+
+Browser clients encode the same one-time ticket in the `dsh-ticket.<base64url(utf8(ticket))>` WebSocket subprotocol and require the Relay to select `dsh-e2ee-v1`. A root-scoped Service Worker maps same-origin DSH HTTP, SSE, and WebSocket traffic to sealed inner envelopes. The key remains in IndexedDB and Service Worker memory; it never enters an HTTP request, Cookie, Relay database, or admin response.
+
+## Relay administration
+
+`/admin/` is disabled unless both `ADMIN_USERNAME` and `ADMIN_PASSWORD` are configured as deployment secrets. `POST /admin/api/login` creates an isolated, eight-hour `HttpOnly; SameSite=Strict; Path=/admin` session. `GET /admin/api/stats` returns aggregate account, device, online-state, and access-session metadata plus at most 50 recent access sessions.
+
+Admin responses MUST NOT contain password hashes, tokens, device credentials, E2EE keys, IP addresses, DSH URL paths, HTTP bodies, WebSocket frames, task text, or model output. The admin session is not accepted by User or Companion APIs.
 
 ## User-facing proxy errors
 

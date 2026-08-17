@@ -4,13 +4,21 @@ This profile defines the application-layer encryption used by DSH Remote 0.1.4. 
 
 ## Security boundary
 
-The profile protects HTTP methods, paths, headers, bodies, response status, response headers, SSE chunks, WebSocket payloads, and close reasons from disclosure or modification by the Relay. It does not hide account/device associations, online state, connection time, ciphertext length, or traffic timing. Compromised Mobile or Companion endpoints are out of scope.
+The profile protects HTTP methods, paths, headers, bodies, response status, response headers, SSE chunks, WebSocket payloads, and close reasons from disclosure or modification by the Relay data plane. It does not hide account/device associations, online state, connection time, ciphertext length, or traffic timing. Compromised Mobile, Browser, or Companion endpoints are out of scope.
+
+For Web, the JavaScript and Service Worker delivered by the configured Relay origin are part of the trusted Browser endpoint. Browser E2EE protects traffic from Relay routing, storage, logs, and passive infrastructure inspection, but it cannot protect against a malicious Relay deployment that replaces the client code before execution. Defending that case requires a separately signed and pinned client such as the native app or a browser extension.
 
 Version 1 uses a QR-delivered pre-shared key and does not provide forward secrecy. A later profile may add authenticated ephemeral X25519 without changing the inner HTTP/WS envelope.
 
 ## Secure pairing
 
-The Companion generates a fresh 32-byte `e2eeMasterKey` locally for every pairing attempt. It is never sent to the Relay. The QR payload is:
+The Companion generates a fresh 32-byte `e2eeMasterKey` locally for every pairing attempt. It is never sent to the Relay. New Companions encode an HTTPS browser link:
+
+```text
+https://relay.example/app/#/pair?code=482913&key=<unpadded-base64url-32-bytes>
+```
+
+The code and key are inside the URL fragment and therefore are not sent in the HTTP request, Referer, Relay access log, or reverse-proxy request target. The browser clears the fragment after a successful claim. Legacy Mobile releases may continue accepting the version 2 JSON form:
 
 ```json
 {"v":2,"relay":"https://relay.example","code":"482913","e2eeKey":"<unpadded-base64url-32-bytes>"}
@@ -34,7 +42,9 @@ The Companion advertises `sealed-tunnel-v1` in its `/device` `auth` payload. `PO
 }
 ```
 
-Mobile opens `tunnelUrl` with `Authorization: WebTicket <ticket>`. Tickets MUST NOT be placed in URLs. The Relay consumes a ticket once, binds the socket to its account, device, and access session, and routes only the message types below.
+Mobile opens `tunnelUrl` with `Authorization: WebTicket <ticket>`. Browser WebSocket APIs cannot set an Authorization header, so Web uses `Sec-WebSocket-Protocol: dsh-e2ee-v1, dsh-ticket.<base64url(utf8(ticket))>` and the Relay selects only `dsh-e2ee-v1`. Tickets MUST NOT be placed in URLs. The Relay consumes a ticket once, binds the socket to its account, device, and access session, and routes only the message types below.
+
+The browser stores the master key by `deviceId` in origin-scoped IndexedDB. It sends the key only to its same-origin Service Worker, which keeps active session material in memory, implements this handshake with Web Crypto, and proxies DSH HTTP, SSE, and WebSocket traffic through sealed inner envelopes. Relay page scripts, admin scripts, and server APIs never receive the master key.
 
 ## Canonical encoding
 

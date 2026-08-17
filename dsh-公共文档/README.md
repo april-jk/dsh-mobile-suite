@@ -7,6 +7,7 @@ This directory is the integration source of truth for the three independently ve
 | [API-v1.md](API-v1.md) | Mobile, Companion, Relay | Account, pairing, device, ticket, and WebView HTTP contracts |
 | [Tunnel-Protocol-v1.md](Tunnel-Protocol-v1.md) | Companion, Relay | WSS authentication, multiplexed HTTP and WebSocket forwarding |
 | [Tunnel-E2EE-v1.md](Tunnel-E2EE-v1.md) | Mobile, Companion, Relay | QR trust bootstrap, sealed handshake, AEAD framing, and downgrade policy |
+| [Browser-Remote-and-Relay-Admin-v1.md](Browser-Remote-and-Relay-Admin-v1.md) | Browser, Companion, Relay | Safari access, browser E2EE gateway, and isolated Relay statistics admin |
 | [Integration-Plan.md](Integration-Plan.md) | All teams | Local and Railway test sequence, ownership, and release gates |
 | [DSH-远程MVP-跨端接口.md](DSH-远程MVP-跨端接口.md) | All teams | Concise implementation-aligned contract summary |
 | [移动端-MVP-修改建议.md](移动端-MVP-修改建议.md) | Mobile | Review findings and acceptance criteria for connecting the Flutter app to the deployed MVP |
