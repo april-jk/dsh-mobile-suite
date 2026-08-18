@@ -21,10 +21,12 @@ The product baseline remains in `../Kimi_Agent_DeepSeek Harness 移动端/`. Whe
 From the immutable GitHub release tag:
 
 ```bash
-dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.4
+dsh plugin --profile web add github:april-jk/dsh-mobile-plugin#v0.1.7
 dsh web
 ```
 
 For local development, build `dsh-plugin` and add its absolute directory path instead. Profiles that previously installed the development name must first run `dsh plugin --profile web remove dsh-mobile-remote-companion`, then add the current package. This prevents both bundle identities from starting together.
 
 The installable package name is `@april-jk/dsh-mobile`; its stable Cordis ID and CLI command remain `dsh-mobile`. Its DSH bundle starts and stops the Companion with `dsh web`, pins workspace selection to DSH's in-browser directory picker, and stores pairing credentials at `~/.dsh-remote/config.json` by default. The project is unofficial and independently maintained by the community.
+
+After a computer is paired, the Companion's DSH settings can generate a browser-access QR/link. Each browser stores the computer's E2EE key independently, so a phone and multiple browsers can use the same computer concurrently. Browser enrollment does not create or replace a Relay computer device.

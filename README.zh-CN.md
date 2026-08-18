@@ -4,7 +4,7 @@
 
 用 Android 手机远程打开电脑上的 DeepSeek Harness Web UI，并通过原有界面创建和下达新任务。
 
-> **非官方社区项目：** 本项目由社区独立开发和维护，未经 DeepSeek 审核、推荐或背书。0.1.4 已在 Mobile 与 Companion 之间对 DSH 会话内容进行端到端加密。
+> **非官方社区项目：** 本项目由社区独立开发和维护，未经 DeepSeek 审核、推荐或背书。当前 Companion、浏览器端与 Mobile 之间的 DSH 会话内容使用端到端加密。
 
 DeepSeek Harness 社区展示帖：[Show Your Plugins! #2520](https://github.com/deepseek-ai/deepseek-harness/discussions/2520)（社区发现入口，不代表官方审核或背书）。
 
@@ -48,7 +48,7 @@ shasum -a 256 -c SHA256SUMS
 直接从 GitHub 安装固定版本的插件并启动 DSH。该方式不要求全局安装 DSH、不需要克隆源码，也不需要填写本地文件路径：
 
 ```bash
-npx @deepseek-ai/dsh plugin --profile web add "github:april-jk/dsh-mobile-plugin#v0.1.4"
+npx @deepseek-ai/dsh plugin --profile web add "github:april-jk/dsh-mobile-plugin#v0.1.7"
 npx @deepseek-ai/dsh web
 ```
 
@@ -58,9 +58,13 @@ npx @deepseek-ai/dsh web
 
 1. 在手机应用注册或登录账号。
 2. 在电脑的 DSH Web UI 打开 **Settings > Remote Access**，创建加密配对二维码。
-3. 在手机电脑列表点 **+** 并扫码。由于六位码无法建立加密密钥，0.1.4 不支持仅输入六位码配对。
+3. 在手机电脑列表点 **+** 并扫码。由于六位码无法建立加密密钥，当前版本不支持仅输入六位码配对。
 4. 选择在线电脑，手机会打开正常的 DSH Web UI。
 5. 在 DSH 原有界面创建任务并提交指令。
+
+### 增加浏览器访问端
+
+电脑完成配对后，在 DSH 的 **Settings > Remote Access** 中点击 **生成浏览器访问码**。在另一台浏览器中打开链接，或使用该浏览器扫描二维码，然后登录同一个 Relay 账号。每个浏览器独立保存这台电脑的 E2EE 密钥，因此手机、iPhone Safari 和多个浏览器可以同时使用，不会互相解绑。
 
 插件随 DSH Web 进程启停，无需另开后台进程。电脑离线、DSH 未启动或插件未连接 Relay 时，手机会显示该电脑离线。
 
@@ -92,7 +96,7 @@ DSH_RELAY=https://relay.example.com npx @deepseek-ai/dsh web
 - 公网传输必须使用 HTTPS/WSS；电脑端不会开放公网监听端口。
 - 移动端只持有账号 Token 和短期 Web Ticket，不会得到电脑设备密钥。
 - DSH HTTP、SSE 与 WebSocket 内容在 Mobile 和 Companion 之间端到端加密；Relay 只路由不透明密文帧，不持有内容密钥。
-- Relay 仍可观察账号/设备关系、在线状态、连接时间、密文长度和流量时序。0.1.4 不提供前向保密。
+- Relay 仍可观察账号/设备关系、在线状态、连接时间、密文长度和流量时序。当前二维码预置密钥方案不提供前向保密。
 - Relay 会保存账号、设备、配对和受限的访问日志元数据；公开商店发布前仍需完成账号删除、隐私政策和数据合规事项。
 
 安全问题请按 [SECURITY.md](SECURITY.md) 私下报告，不要在公开 Issue 中披露可利用细节。
