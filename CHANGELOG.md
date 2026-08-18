@@ -20,6 +20,6 @@
 ### Releases
 
 - Companion: [v0.1.7](https://github.com/april-jk/dsh-mobile-plugin/releases/tag/v0.1.7)
-- Relay: [v0.1.7](https://github.com/april-jk/dsh-relay/releases/tag/v0.1.7)
+- Relay: [v0.1.8](https://github.com/april-jk/dsh-relay/releases/tag/v0.1.8)
 
 The unified Suite release remains `v0.1.5` until the Android, Relay, Companion, and website component versions are aligned for a single signed release.
