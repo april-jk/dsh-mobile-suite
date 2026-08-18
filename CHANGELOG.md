@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.7 / 0.1.6 - 2026-08-19
+## 0.1.7 - 2026-08-19
 
 ### Browser and Companion access
 
@@ -9,6 +9,7 @@
 - Browser enrollment accepts both the normal computer pairing QR and the browser-access QR.
 - Phone, iPhone Safari, and additional browsers can use the same computer concurrently without replacing each other's E2EE key.
 - Added Companion update checks and a local one-click updater. DSH must be restarted after installation.
+- Fixed browser refresh recovery by resuming the Service Worker tunnel and renewing the short-lived web ticket.
 
 ### Security
 
@@ -19,6 +20,6 @@
 ### Releases
 
 - Companion: [v0.1.7](https://github.com/april-jk/dsh-mobile-plugin/releases/tag/v0.1.7)
-- Relay: [v0.1.6](https://github.com/april-jk/dsh-relay/releases/tag/v0.1.6)
+- Relay: [v0.1.7](https://github.com/april-jk/dsh-relay/releases/tag/v0.1.7)
 
 The unified Suite release remains `v0.1.5` until the Android, Relay, Companion, and website component versions are aligned for a single signed release.
