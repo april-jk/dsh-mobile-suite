@@ -21,6 +21,18 @@ iPhone Camera recognizes the HTTPS QR and opens Safari. Only `/app/` is sent to 
 
 Pairing links are credentials. Users must not paste them into chat, analytics, crash reports, or support tickets. Re-pairing rotates the key. Removing a device deletes the browser key and revokes the Relay device association.
 
+## Additional browser enrollment
+
+Initial Companion pairing is intentionally one-time. After a device is already bound, the Companion or Mobile client may generate a repeatable browser enrollment link:
+
+```text
+https://<relay-origin>/app/#/web-pair?device=<device-id>&key=<base64url-key>
+```
+
+The link reuses the existing device master key and does not call `/pair/claim`. The browser must already be signed in to the account that owns `device`. It loads `/devices`, verifies that the device is present in that account's list, then stores the fragment key in origin-scoped IndexedDB. The key remains in the URL fragment and is never sent to Relay. Each browser enrollment is local to that browser; generating another link does not revoke Mobile or other browsers.
+
+The Companion local management API exposes `GET /dsh-mobile/api/browser-access` only to local management requests. The Companion CLI equivalent is `dsh-mobile web`. Remote/tunneled management requests receive `local_management_required`. Unbinding the device or removing local browser authorization revokes access; ordinary Mobile and Browser sessions may otherwise use separate access sessions concurrently.
+
 ## Browser session gateway
 
 1. Browser requests a one-time `/web-ticket` with its HttpOnly user session.
